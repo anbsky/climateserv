@@ -1,0 +1,29 @@
+[Unit]
+Description=SDS sensor reader service
+ConditionPathExists=/dev/ttyUSB0
+After=network.target
+ 
+[Service]
+Type=simple
+User=silence
+Group=silence
+LimitNOFILE=1024
+
+Restart=on-failure
+RestartSec=10
+startLimitIntervalSec=60
+
+WorkingDirectory=/home/silence/sds_reader/service
+ExecStart=/home/silence/sds_reader/sds_reader -i 10 -d /dev/ttyUSB0 -p 2510 -i 10
+
+# make sure log directory exists and owned by syslog
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p /var/log/sds_reader
+ExecStartPre=/bin/chown syslog:adm /var/log/sds_reader
+ExecStartPre=/bin/chmod 755 /var/log/sds_reader
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=sds_reader
+ 
+[Install]
+WantedBy=multi-user.target
