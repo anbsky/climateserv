@@ -71,24 +71,13 @@ func open_device(device_path string) *serial.Port {
 	return serial_port
 }
 
-func reopen_device(device *serial.Port, device_path string) *serial.Port {
-	err := device.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return open_device(device_path)
-}
-
 func start_reading(device_path string, interval int) {
-	device := open_device(device_path)
 	for {
-		entry, err := read_device(device)
+		entry, err := read_device(device_path)
 		if err != nil {
 			log.Printf("%s (PM2.5: %.2f, PM10: %.2f)\n", err, entry.PM25, entry.PM10)
-			device = reopen_device(device, device_path)
 		} else {
 			log.Printf("PM2.5: %.2f, PM10: %.2f\n", entry.PM25, entry.PM10)
-
 			samples = append(samples, entry)
 			samples = samples[1:]
 			time.Sleep(time.Duration(interval) * time.Second)
@@ -96,9 +85,11 @@ func start_reading(device_path string, interval int) {
 	}
 }
 
-func read_device(device *serial.Port) (entry AirQualityData, err error) {
+func read_device(device_path string) (entry AirQualityData, err error) {
+	device := open_device(device_path)
 	buffer := make([]byte, 10)
 	_, err = device.Read(buffer)
+	device.Close()
 
 	if err != nil {
 		return AirQualityData{PM25: 0.0, PM10: 0.0, Timestamp: time.Now().UTC()}, err
