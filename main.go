@@ -34,7 +34,7 @@ func main() {
 	var interval string
 
 	app := cli.NewApp()
-	app.Name = "Read SDS011/021 air pollution sensor and serve it on the web"
+	app.Name = fmt.Sprintf("ClimateServ %v, commit %v, built at %v", version, commit, date)
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:        "device, d",
@@ -53,7 +53,6 @@ func main() {
 			Destination: &interval,
 		},
 	}
-	fmt.Printf("%v, commit %v, built at %v", version, commit, date)
 	app.Action = func(c *cli.Context) error {
 		interval_numeric, err := strconv.Atoi(interval)
 		if err != nil {

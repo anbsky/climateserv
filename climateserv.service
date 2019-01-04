@@ -1,25 +1,23 @@
 [Unit]
-Description=SDS sensor reader service
+Description=ClimateServ
 ConditionPathExists=/dev/ttyUSB0
 After=network.target
 
 [Service]
 Type=simple
-User=silence
+User=climateserv
 Group=dialout
 LimitNOFILE=1024
 
+ExecStart=/usr/local/bin/climateserv -i 10 -d /dev/ttyUSB0 -p 2510 -i 10
 Restart=on-failure
 RestartSec=10
 StartLimitInterval=60
 
-WorkingDirectory=/home/silence/sds_reader/service
-ExecStart=/home/silence/sds_reader/sds_reader -i 10 -d /dev/ttyUSB0 -p 2510 -i 10
-
 PermissionsStartOnly=true
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=sds_reader
+SyslogIdentifier=climateserv
 
 [Install]
 WantedBy=multi-user.target
