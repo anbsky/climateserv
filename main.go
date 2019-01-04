@@ -14,6 +14,12 @@ import (
 	"github.com/urfave/cli"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 type AirQualityData struct {
 	Timestamp time.Time `json:"timestamp"`
 	PM25      float64   `json:"pm25"`
@@ -47,6 +53,7 @@ func main() {
 			Destination: &interval,
 		},
 	}
+	fmt.Printf("%v, commit %v, built at %v", version, commit, date)
 	app.Action = func(c *cli.Context) error {
 		interval_numeric, err := strconv.Atoi(interval)
 		if err != nil {
@@ -76,12 +83,12 @@ func start_reading(device_path string, interval int) {
 		entry, err := read_device(device_path)
 		if err != nil {
 			log.Printf("%s (PM2.5: %.2f, PM10: %.2f)\n", err, entry.PM25, entry.PM10)
-		} else {
-			log.Printf("PM2.5: %.2f, PM10: %.2f\n", entry.PM25, entry.PM10)
-			samples = append(samples, entry)
-			samples = samples[1:]
-			time.Sleep(time.Duration(interval) * time.Second)
+			continue
 		}
+		log.Printf("PM2.5: %.2f, PM10: %.2f\n", entry.PM25, entry.PM10)
+		samples = append(samples, entry)
+		samples = samples[1:]
+		time.Sleep(time.Duration(interval) * time.Second)
 	}
 }
 
