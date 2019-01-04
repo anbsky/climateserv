@@ -34,7 +34,8 @@ func main() {
 	var interval string
 
 	app := cli.NewApp()
-	app.Name = fmt.Sprintf("ClimateServ %v, commit %v, built at %v", version, commit, date)
+	app.Name = "ClimateServ"
+	app.Version = fmt.Sprintf("%v, commit %v, built at %v", version, commit, date)
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:        "device, d",
