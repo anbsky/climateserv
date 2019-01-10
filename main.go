@@ -1,4 +1,4 @@
-package main
+package climateserv
 
 import (
 	"encoding/json"
