@@ -21,9 +21,11 @@ var (
 )
 
 type AirQualityData struct {
-	Timestamp time.Time `json:"timestamp"`
-	PM25      float64   `json:"pm25"`
-	PM10      float64   `json:"pm10"`
+	Timestamp   time.Time `json:"timestamp"`
+	PM25        float64   `json:"pm25"`
+	PM10        float64   `json:"pm10"`
+	AQIPM25     int       `json:"aqi_pm25"`
+	AQICategory string    `json:"aqi_category"`
 }
 
 var samples = make([]AirQualityData, 10)
@@ -101,11 +103,15 @@ func read_device(device_path string) (entry AirQualityData, err error) {
 	if err != nil {
 		return AirQualityData{PM25: 0.0, PM10: 0.0, Timestamp: time.Now().UTC()}, err
 	}
-
+	PM25 := parse_and_convert(buffer[2], buffer[3])
+	PM10 := parse_and_convert(buffer[4], buffer[5])
+	AQIPM25, category := CurrentPM25toAQI(PM25)
 	entry = AirQualityData{
-		PM25:      parse_and_convert(buffer[2], buffer[3]),
-		PM10:      parse_and_convert(buffer[4], buffer[5]),
-		Timestamp: time.Now().UTC()}
+		PM25:        PM25,
+		PM10:        PM10,
+		AQIPM25:     AQIPM25,
+		AQICategory: category,
+		Timestamp:   time.Now().UTC()}
 	if entry.PM25 > 400 || entry.PM10 > 400 {
 		err = errors.New("crazy value read from the port")
 	}
