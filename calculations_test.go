@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestPM25toAQI(t *testing.T) {
+func TestCurrentPM25toAQI(t *testing.T) {
 	values := [][3]interface{}{
 		{111.5, 180, "unhealthy"},
 		{10.0, 42, "good"},
@@ -17,7 +17,7 @@ func TestPM25toAQI(t *testing.T) {
 	}
 	for _, expected := range values {
 		concentration, _ := expected[0].(float64)
-		resultAQI, resultDescription := PM25toAQI(concentration)
+		resultAQI, resultDescription := CurrentPM25toAQI(concentration)
 		if resultAQI != expected[1] {
 			t.Errorf(
 				"AQI for %v should be %v but we got %v",
