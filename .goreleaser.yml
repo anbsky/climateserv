@@ -13,12 +13,9 @@ builds:
   - CGO_ENABLED=0
   goos:
   - linux
-  - darwin
   goarch:
   - amd64
   - arm
-  # gcflags:
-  # - -Qunused-arguments -Qunused-command-line-argument
 archive:
   replacements:
     darwin: Darwin
