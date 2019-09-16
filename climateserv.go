@@ -105,38 +105,41 @@ func handle_current_view(writer http.ResponseWriter, request *http.Request) {
 
 var descriptions = map[string]string{}
 
-/*
-CurrentPM25toAQI converts current PM2.5 concentration to AQI.
+type AQI struct {
+	cLow        float64
+	cHigh       float64
+	idxLow      uint
+	idxHigh     uint
+	Description string
+}
 
-Code based on AirNow calculator (https://airnow.gov/index.cfm?action=airnow.calculator)
-*/
+var definedAQIs = []AQI{
+	AQI{0, 12.0, 0, 50, "good"},
+	AQI{12.1, 35.4, 51, 100, "moderate"},
+	AQI{35.5, 55.4, 101, 150, "unhealthy for sensitive groups"},
+	AQI{55.5, 150.4, 151, 200, "unhealthy"},
+	AQI{150.5, 250.4, 201, 300, "very unhealthy"},
+	AQI{250.5, 350.4, 301, 400, "hazardous"},
+	AQI{350.5, 500.4, 401, 500, "hazardous"},
+}
+
+// CurrentPM25toAQI converts current PM2.5 concentration to AQI.
+// Code based on AirNow calculator (https://airnow.gov/index.cfm?action=airnow.calculator)
 func CurrentPM25toAQI(concentration float64) (int, string) {
-	fConc := math.Floor(concentration*10) / 10
-	switch {
-	case 12.1 > fConc && fConc >= 0:
-		return convertPM25toAQI(50, 0, 12, 0, fConc), "good"
-	case 35.5 > fConc && fConc >= 12.1:
-		return convertPM25toAQI(100, 51, 35.4, 12.1, fConc), "moderate"
-	case 55.5 > fConc && fConc >= 35.5:
-		return convertPM25toAQI(150, 101, 55.4, 35.5, fConc), "unhealthy for sensitive groups"
-	case 150.5 > fConc && fConc >= 55.5:
-		return convertPM25toAQI(200, 151, 150.4, 55.5, fConc), "unhealthy"
-	case 250.5 > fConc && fConc >= 150.5:
-		return convertPM25toAQI(300, 201, 250.4, 150.5, fConc), "very unhealthy"
-	case 350.5 > fConc && fConc >= 250.5:
-		return convertPM25toAQI(400, 301, 350.4, 250.5, fConc), "hazardous"
-	case 500.5 > fConc && fConc >= 350.5:
-		return convertPM25toAQI(500, 401, 500.4, 350.5, fConc), "hazardous"
+	concentration = math.Floor(concentration*10) / 10
+	for _, idx := range definedAQIs {
+		if idx.cHigh >= concentration && concentration >= idx.cLow {
+			return pm25toIdx(idx, concentration), idx.Description
+		}
 	}
+
 	return 999, "out of range"
 }
 
-/*
-convertPM25toAQI calculates AQI based on current concentration
-and previous high and low values using EPA formula
-(https://en.wikipedia.org/wiki/Air_quality_index#Computing_the_AQI)
-*/
-func convertPM25toAQI(AQIhigh uint, AQIlow uint, concHigh float64, concLow float64, conc float64) (AQI int) {
-	resultAQI := ((conc-concLow)/(concHigh-concLow))*float64((AQIhigh-AQIlow)) + float64(AQIlow)
-	return int(math.Round(resultAQI))
+// pm25toIdx converts PM2.5 concentration to AQI number based on current concentration
+// and previous high and low values using EPA formula
+// (https://en.wikipedia.org/wiki/Air_quality_index#Computing_the_AQI)
+func pm25toIdx(a AQI, concentration float64) int {
+	r := (float64(a.idxHigh-a.idxLow)/(a.cHigh-a.cLow))*(concentration-a.cLow) + float64(a.idxLow)
+	return int(math.Round(r))
 }
